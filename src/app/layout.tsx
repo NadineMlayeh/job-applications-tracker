@@ -32,8 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className={`${display.variable} ${body.variable} ${mono.variable} relative min-h-screen antialiased`}>
         <Background />
-        <div className="relative z-10">
+        <div className="relative z-10 flex min-h-screen flex-col">
           <AppProviders>{children}</AppProviders>
+          <footer className="mt-auto border-t border-border/50 bg-background/35 px-6 py-4 text-center text-xs text-muted backdrop-blur">
+            © 2026 Nadine Mlayeh. All rights reserved.
+          </footer>
         </div>
       </body>
     </html>

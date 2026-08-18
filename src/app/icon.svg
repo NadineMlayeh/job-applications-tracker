@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C0F35"/>
+      <stop offset="1" stop-color="#0F051D"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="15" y1="18" x2="50" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <path d="M23 24v-4.5A5.5 5.5 0 0 1 28.5 14h7A5.5 5.5 0 0 1 41 19.5V24" fill="none" stroke="#C084FC" stroke-width="4" stroke-linecap="round"/>
+  <rect x="13" y="24" width="38" height="27" rx="7" fill="url(#mark)" filter="url(#glow)"/>
+  <path d="M13 34h38" stroke="#F5F3FF" stroke-opacity=".72" stroke-width="3"/>
+  <rect x="28" y="31" width="8" height="7" rx="2" fill="#0F051D" fill-opacity=".82"/>
+  <path d="M45 17l3 3 4-8" fill="none" stroke="#06B6D4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
