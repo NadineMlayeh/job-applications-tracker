@@ -1,45 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, MailCheck, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 
 export function AuthCard({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(
+    searchParams.get("notice") === "verify-failed"
+      ? "That verification link is invalid or expired. Enter your email below and we'll send a fresh one."
+      : null
+  );
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const redirectTo = `${window.location.origin}/auth/callback`;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setNotice(null);
     setLoading(true);
 
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
 
     if (result.error) {
-      setError(result.error.message);
+      if (isUnconfirmedError(result.error)) {
+        setNotice(`Your email hasn't been verified yet. Check your inbox for the confirmation link we sent to ${email}.`);
+      } else {
+        setError(result.error.message);
+      }
       setLoading(false);
       return;
     }
 
     const user = result.data.user;
-    if (mode === "signup" && user) {
-      const seed = await supabase.rpc("seed_default_fields", { p_user_id: user.id });
-      if (seed.error) setError(seed.error.message);
+
+    if (mode === "signup") {
+      if (user) {
+        const seed = await supabase.rpc("seed_default_fields", { p_user_id: user.id });
+        if (seed.error) setError(seed.error.message);
+      }
+      if (!result.data.session) {
+        setNotice(`We sent a verification link to ${email}. Open it to activate your account, then sign in.`);
+        setLoading(false);
+        return;
+      }
     }
 
     router.replace("/");
     router.refresh();
+  }
+
+  async function resend() {
+    setResending(true);
+    setError(null);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+    setResending(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setNotice(`A new verification link was sent to ${email}.`);
+    }
   }
 
   return (
@@ -57,8 +95,26 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
           <p className="mt-0.5 text-sm text-muted">AI-assisted application tracking.</p>
         </div>
 
+        {notice ? (
+          <div className="mb-4 rounded-xl border border-amber-400/25 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <div className="flex items-start gap-2">
+              <MailCheck size={16} className="mt-0.5 shrink-0" />
+              <div className="flex-1">{notice}</div>
+            </div>
+            <button
+              type="button"
+              onClick={resend}
+              disabled={resending || !email}
+              className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-medium text-amber-300 underline-offset-4 transition-colors hover:text-amber-200 hover:underline disabled:opacity-50"
+            >
+              {resending ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+              Resend verification email
+            </button>
+          </div>
+        ) : null}
+
         <label className="mb-4 block text-sm">
-          <span className="mono-eyebrow mb-2 block text-[10px] text-muted">Email</span>
+          <span className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-muted">Email</span>
           <input
             type="email"
             required
@@ -69,7 +125,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
         </label>
 
         <label className="mb-5 block text-sm">
-          <span className="mono-eyebrow mb-2 block text-[10px] text-muted">Password</span>
+          <span className="mb-2 block text-[10px] font-medium uppercase tracking-[0.18em] text-muted">Password</span>
           <input
             type="password"
             required
@@ -95,5 +151,12 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
         </p>
       </motion.form>
     </main>
+  );
+}
+
+function isUnconfirmedError(error: { code?: string; message?: string }) {
+  return (
+    error?.code === "email_not_confirmed" ||
+    /not confirmed|verify (your )?(e-?mail|account)|e-?mail.*(confirm|verify)/i.test(error?.message ?? "")
   );
 }
