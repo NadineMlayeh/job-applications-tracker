@@ -118,6 +118,7 @@ export function ApplicationFormModal({
       assignCustom(custom, form.custom_fields, "experience_required", extracted.experience_required, filled);
       assignCustom(custom, form.custom_fields, "salary", extracted.salary_range, filled);
       assignCustom(custom, form.custom_fields, "contact_person", extracted.contact_person, filled);
+      assignCustom(custom, form.custom_fields, "email", extracted.contact_email, filled);
       assignCustom(custom, form.custom_fields, "source", extracted.source, filled);
 
       setForm((current) => ({
@@ -278,7 +279,7 @@ function DynamicInput({ field, value, onChange, highlighted }: { field: FieldDef
   if (field.field_type === "multiselect") {
     return <input value={Array.isArray(value) ? value.join(", ") : String(value ?? "")} onChange={(e) => onChange(e.target.value.split(",").map((part) => part.trim()).filter(Boolean))} className={base} />;
   }
-  return <input type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : field.field_type === "url" ? "url" : "text"} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className={base} />;
+  return <input type={field.field_type === "number" ? "number" : field.field_type === "email" ? "email" : field.field_type === "date" ? "date" : field.field_type === "url" ? "url" : "text"} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className={base} />;
 }
 
 function Field({ label, highlighted, loading, children }: { label: string; highlighted?: boolean; loading?: boolean; children: React.ReactNode }) {

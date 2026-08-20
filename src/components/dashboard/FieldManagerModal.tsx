@@ -100,7 +100,7 @@ export function FieldManagerModal({ userId, fields, onClose }: { userId: string;
           <form onSubmit={addField} className="mt-5 grid gap-3 rounded-2xl border border-purple-400/20 bg-[rgba(10,4,22,0.4)] p-4 md:grid-cols-[1fr_150px]">
             <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="New field label" className="rounded-xl border border-white/10 bg-[rgba(8,3,20,0.55)] px-3 py-2 text-sm outline-none transition hover:border-purple-400/35 focus:border-cyan/50 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.1)]" />
             <select value={type} onChange={(e) => setType(e.target.value as FieldType)} className="rounded-xl border border-white/10 bg-[rgba(8,3,20,0.55)] px-3 py-2 text-sm outline-none transition hover:border-purple-400/35 focus:border-cyan/50">
-              {["text", "date", "select", "multiselect", "url", "number"].map((item) => <option key={item}>{item}</option>)}
+              {["text", "email", "date", "select", "multiselect", "url", "number"].map((item) => <option key={item}>{item}</option>)}
             </select>
             <input value={options} onChange={(e) => setOptions(e.target.value)} placeholder="Options, comma-separated" className="rounded-xl border border-white/10 bg-[rgba(8,3,20,0.55)] px-3 py-2 text-sm outline-none transition hover:border-purple-400/35 focus:border-cyan/50 md:col-span-2" />
             <Button className="md:col-span-2" disabled={!label.trim()}>

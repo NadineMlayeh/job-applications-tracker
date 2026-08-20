@@ -27,7 +27,7 @@ export const STATUS_ORDER: ApplicationStatus[] = [
   "withdrawn",
 ];
 
-export type FieldType = "text" | "date" | "select" | "multiselect" | "url" | "number";
+export type FieldType = "text" | "email" | "date" | "select" | "multiselect" | "url" | "number";
 
 export interface FieldDefinition {
   id: string;
@@ -77,5 +77,6 @@ export interface ExtractedJobFields {
   experience_required: string | null;
   salary_range: string | null;
   contact_person: string | null;
+  contact_email: string | null;
   source: string | null;
 }

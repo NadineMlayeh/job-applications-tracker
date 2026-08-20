@@ -23,7 +23,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const redirectTo = `${window.location.origin}/auth/callback`;
+  const redirectTo = () => `${window.location.origin}/auth/callback`;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -34,7 +34,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
     const result =
       mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } });
+        : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo() } });
 
     if (result.error) {
       if (isUnconfirmedError(result.error)) {
@@ -70,7 +70,7 @@ export function AuthCard({ mode }: { mode: "login" | "signup" }) {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: redirectTo },
+      options: { emailRedirectTo: redirectTo() },
     });
     setResending(false);
     if (error) {

@@ -143,16 +143,17 @@ begin
   values
     (p_user_id, 'location', 'Location', 'text', '[]'::jsonb, true, false, 1),
     (p_user_id, 'remote_type', 'Type', 'select', '["Remote", "Hybrid", "Onsite"]'::jsonb, true, false, 2),
-    (p_user_id, 'source', 'Application method', 'select', '["LinkedIn", "Company Website", "Referral", "Indeed", "Other"]'::jsonb, true, false, 3),
+    (p_user_id, 'source', 'Application method', 'select', '["LinkedIn", "Company Website", "Referral", "Email", "Other"]'::jsonb, true, false, 3),
     (p_user_id, 'cv_version', 'CV Version', 'text', '[]'::jsonb, true, false, 4),
     (p_user_id, 'salary', 'Salary', 'text', '[]'::jsonb, true, false, 5),
     (p_user_id, 'tech_stack', 'Tech Stack', 'multiselect', '[]'::jsonb, true, false, 6),
     (p_user_id, 'experience_required', 'Experience Required', 'text', '[]'::jsonb, true, false, 7),
     (p_user_id, 'contact_person', 'Contact Person', 'text', '[]'::jsonb, true, false, 8),
-    (p_user_id, 'interview_date', 'Interview Date', 'date', '[]'::jsonb, true, false, 9),
-    (p_user_id, 'rejection_reason', 'Rejection Reason', 'text', '[]'::jsonb, true, false, 10),
-    (p_user_id, 'follow_up_date', 'Follow-up Date', 'date', '[]'::jsonb, true, false, 11),
-    (p_user_id, 'application_type', 'Application', 'select', '["Job", "PFE / Internship"]'::jsonb, true, false, 12)
+    (p_user_id, 'email', 'Contact Email', 'email', '[]'::jsonb, true, false, 9),
+    (p_user_id, 'interview_date', 'Interview Date', 'date', '[]'::jsonb, true, false, 10),
+    (p_user_id, 'rejection_reason', 'Rejection Reason', 'text', '[]'::jsonb, true, false, 11),
+    (p_user_id, 'follow_up_date', 'Follow-up Date', 'date', '[]'::jsonb, true, false, 12),
+    (p_user_id, 'application_type', 'Application', 'select', '["Job", "PFE / Internship"]'::jsonb, true, false, 13)
   on conflict (user_id, field_key) do nothing;
 end;
 $$ language plpgsql security definer;

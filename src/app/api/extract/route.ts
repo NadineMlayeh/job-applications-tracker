@@ -24,6 +24,7 @@ const responseSchema = {
     experience_required: { type: SchemaType.STRING, nullable: true },
     salary_range: { type: SchemaType.STRING, nullable: true },
     contact_person: { type: SchemaType.STRING, nullable: true },
+    contact_email: { type: SchemaType.STRING, nullable: true },
     source: { type: SchemaType.STRING, nullable: true },
   },
   required: [
@@ -35,6 +36,7 @@ const responseSchema = {
     "experience_required",
     "salary_range",
     "contact_person",
+    "contact_email",
     "source",
   ],
 };
@@ -81,8 +83,11 @@ extract the requested fields. Rules:
 - "tech_stack" should be a short list of concrete technologies/tools/languages mentioned
   (e.g. ["React", "Node.js", "PostgreSQL"]), not soft skills.
 - "experience_required" should be a short phrase (e.g. "2+ years" or "Entry level").
+- "contact_person" is the name of a recruiter / HR contact / hiring manager mentioned in the post.
+- "contact_email" is the contact email address (a string like "jobs@company.com") explicitly
+  present in the post. Return null if no email address is mentioned.
 - "source" is the application method/platform. Return the place where the user found
-  or applies to the role, such as "LinkedIn", "Company Website", "Referral", "Indeed",
+  or applies to the role, such as "LinkedIn", "Company Website", "Referral", "Email",
   or "Other". If no application method/platform is mentioned or obvious, return null.
 
 JOB POST TEXT:
