@@ -4,12 +4,6 @@ Track every job and PFE (internship) application in one place, with AI-powered
 auto-fill from pasted job postings, fully custom fields, and per-application
 file attachments.
 
-## Status
-
-This is a **scaffold**. The structure, database schema, types, AI extraction
-route, and one working page are built. See `AGENT_PLAN.md` for the full
-remaining build plan — hand that file to your AI coding agent as-is.
-
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript + Tailwind
