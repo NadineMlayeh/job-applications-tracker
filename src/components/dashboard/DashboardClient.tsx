@@ -17,6 +17,7 @@ import {
   Search,
   Settings2,
   Sparkles,
+  Star,
   X,
 } from "lucide-react";
 import { User } from "@supabase/supabase-js";
@@ -75,6 +76,7 @@ export function DashboardClient({ user }: { user: User }) {
   const [view, setView] = useState<"table" | "kanban">("table");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Application["status"] | "all">("all");
+  const [starredOnly, setStarredOnly] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
   const [editing, setEditing] = useState<Application | null>(null);
   const [managingFields, setManagingFields] = useState(false);
@@ -108,6 +110,17 @@ export function DashboardClient({ user }: { user: User }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["applications"] }),
   });
 
+  const starMutation = useMutation({
+    mutationFn: (app: Application) =>
+      updateApplication(supabase, app.id, {
+        custom_fields: {
+          ...app.custom_fields,
+          starred: !isStarred(app),
+        },
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["applications"] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteApplication(supabase, id),
     onSuccess: () => {
@@ -126,13 +139,14 @@ export function DashboardClient({ user }: { user: User }) {
     const needle = search.toLowerCase().trim();
     return applications.filter((app) => {
       if (statusFilter !== "all" && app.status !== statusFilter) return false;
+      if (starredOnly && !isStarred(app)) return false;
       if (!needle) return true;
       return [app.company, app.position, app.status, ...Object.values(app.custom_fields ?? {}).flat()]
         .join(" ")
         .toLowerCase()
         .includes(needle);
     });
-  }, [applications, search, statusFilter]);
+  }, [applications, search, statusFilter, starredOnly]);
 
   const statusCounts = useMemo(() => {
     const counts = new Map<Application["status"], number>();
@@ -247,6 +261,18 @@ export function DashboardClient({ user }: { user: User }) {
             All
             <span className="text-[10px] opacity-70">{applications.length}</span>
           </button>
+          <button
+            onClick={() => setStarredOnly((value) => !value)}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+              starredOnly
+                ? "border-cyan-400/50 bg-cyan-500/15 text-foreground shadow-[0_0_18px_rgba(34,211,238,0.2)]"
+                : "border-white/10 bg-white/[0.03] text-muted hover:border-white/25 hover:text-foreground"
+            }`}
+          >
+            <Star size={13} className={starredOnly ? "fill-cyan-300 text-cyan-300" : ""} />
+            Starred
+            <span className="text-[10px] opacity-70">{applications.filter(isStarred).length}</span>
+          </button>
           {STATUS_ORDER.map((status) => {
             const active = statusFilter === status;
             return (
@@ -319,6 +345,7 @@ export function DashboardClient({ user }: { user: User }) {
           ) : view === "table" ? (
             <ApplicationTable
               applications={filtered}
+              onToggleStar={(app) => starMutation.mutate(app)}
               onEdit={setEditing}
               onDelete={(app) => deleteMutation.mutate(app.id)}
             />
@@ -326,6 +353,7 @@ export function DashboardClient({ user }: { user: User }) {
             <KanbanBoard
               applications={filtered}
               docCounts={docCounts}
+              onToggleStar={(app) => starMutation.mutate(app)}
               onDrop={(id, status) => statusMutation.mutate({ id, status })}
               onEdit={setEditing}
               onDocuments={setDocumentsFor}
@@ -365,6 +393,7 @@ export function DashboardClient({ user }: { user: User }) {
           { label: "Add application", run: () => setModalMode("manual") },
           { label: "Paste job post", run: () => setModalMode("ai") },
           { label: "Manage fields", run: () => setManagingFields(true) },
+          { label: starredOnly ? "Show all jobs" : "Show starred jobs", run: () => setStarredOnly((value) => !value) },
           { label: view === "table" ? "Switch to Kanban" : "Switch to Table", run: () => setView(view === "table" ? "kanban" : "table") },
         ]}
       />
@@ -412,10 +441,12 @@ function StatCard({ icon, label, value, accent }: { icon: React.ReactNode; label
 
 function ApplicationTable({
   applications,
+  onToggleStar,
   onEdit,
   onDelete,
 }: {
   applications: Application[];
+  onToggleStar: (app: Application) => void;
   onEdit: (app: Application) => void;
   onDelete: (app: Application) => void;
 }) {
@@ -436,6 +467,15 @@ function ApplicationTable({
             <tr key={app.id} className="group relative border-b border-white/[0.05] transition-colors last:border-0 even:bg-white/[0.015] hover:bg-white/[0.03]">
               <td className="px-5 py-4">
                 <span className="flex items-center gap-2 font-medium text-foreground">
+                  <button
+                    onClick={() => onToggleStar(app)}
+                    className={`rounded-lg p-1 transition-colors ${
+                      isStarred(app) ? "text-cyan-300" : "text-muted hover:text-cyan-300"
+                    }`}
+                    title={isStarred(app) ? "Unstar job" : "Star job"}
+                  >
+                    <Star size={15} className={isStarred(app) ? "fill-cyan-300" : ""} />
+                  </button>
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-purple-400/25 bg-purple-500/10 font-display text-[11px] font-semibold text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
                     {app.company.charAt(0).toUpperCase()}
                   </span>
@@ -475,12 +515,14 @@ function ApplicationTable({
 function KanbanBoard({
   applications,
   docCounts,
+  onToggleStar,
   onDrop,
   onEdit,
   onDocuments,
 }: {
   applications: Application[];
   docCounts: Record<string, number>;
+  onToggleStar: (app: Application) => void;
   onDrop: (id: string, status: Application["status"]) => void;
   onEdit: (app: Application) => void;
   onDocuments: (app: Application) => void;
@@ -518,7 +560,18 @@ function KanbanBoard({
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className={`group cursor-grab rounded-xl border border-white/[0.07] bg-[rgba(10,4,22,0.6)] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition-all duration-200 hover:shadow-[0_16px_38px_rgba(0,0,0,0.45)] hover:brightness-110 ${accent.ring}`}
                 >
-                  <h3 className="truncate font-display text-sm font-semibold text-foreground">{app.company}</h3>
+                  <div className="flex items-start gap-2">
+                    <button
+                      onClick={() => onToggleStar(app)}
+                      className={`mt-0.5 rounded-md p-0.5 transition-colors ${
+                        isStarred(app) ? "text-cyan-300" : "text-muted hover:text-cyan-300"
+                      }`}
+                      title={isStarred(app) ? "Unstar job" : "Star job"}
+                    >
+                      <Star size={14} className={isStarred(app) ? "fill-cyan-300" : ""} />
+                    </button>
+                    <h3 className="truncate font-display text-sm font-semibold text-foreground">{app.company}</h3>
+                  </div>
                   <p className="mt-1 line-clamp-2 text-[13px] text-muted">{app.position}</p>
                   <div className="mt-3 flex items-center justify-between text-xs text-muted">
                     <span className="font-mono">{app.date_applied}</span>
@@ -548,4 +601,8 @@ function formatField(value: unknown) {
   if (Array.isArray(value)) return value.join(", ");
   if (value === null || value === undefined || value === "") return "-";
   return String(value);
+}
+
+function isStarred(app: Application) {
+  return app.custom_fields?.starred === true;
 }

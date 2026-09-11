@@ -60,15 +60,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const modelName = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+    const modelNames = Array.from(
+      new Set(
+        (process.env.GEMINI_MODEL || "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash")
+          .split(",")
+          .map((model) => model.trim())
+          .filter(Boolean)
+      )
+    );
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema,
-      },
-    });
 
     const prompt = `You extract structured data from job postings. Read the job post text below and
 extract the requested fields. Rules:
@@ -95,7 +95,28 @@ JOB POST TEXT:
 ${text.slice(0, 12000)}
 """`;
 
-    const result = await model.generateContent(prompt);
+    let result;
+    let lastError: unknown;
+    for (const modelName of modelNames) {
+      try {
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema,
+          },
+        });
+        result = await model.generateContent(prompt);
+        break;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : "";
+        if (!message.includes("model") && !message.includes("Not Found")) throw error;
+      }
+    }
+
+    if (!result) throw lastError ?? new Error("No Gemini model returned a response.");
+
     const raw = result.response.text();
     const parsed: ExtractedJobFields = JSON.parse(raw);
 
@@ -108,7 +129,7 @@ ${text.slice(0, 12000)}
         error: message.includes("API key")
           ? "Gemini rejected the API key. Check GEMINI_API_KEY in .env.local."
           : message.includes("model") || message.includes("Not Found")
-            ? "Gemini model is unavailable. Set GEMINI_MODEL=gemini-3.6-flash in .env.local or update the model name."
+            ? "Gemini model is unavailable. Set GEMINI_MODEL=gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash in .env.local or update the model name."
             : "Failed to extract fields. You can still fill the form manually.",
       },
       { status: 500 }
