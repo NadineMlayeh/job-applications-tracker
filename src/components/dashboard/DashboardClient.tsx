@@ -265,11 +265,11 @@ export function DashboardClient({ user }: { user: User }) {
             onClick={() => setStarredOnly((value) => !value)}
             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
               starredOnly
-                ? "border-cyan-400/50 bg-cyan-500/15 text-foreground shadow-[0_0_18px_rgba(34,211,238,0.2)]"
+                ? "border-yellow-400/55 bg-yellow-400/15 text-foreground shadow-[0_0_18px_rgba(250,204,21,0.22)]"
                 : "border-white/10 bg-white/[0.03] text-muted hover:border-white/25 hover:text-foreground"
             }`}
           >
-            <Star size={13} className={starredOnly ? "fill-cyan-300 text-cyan-300" : ""} />
+            <Star size={13} className={starredOnly ? "fill-yellow-300 text-yellow-300" : ""} />
             Starred
             <span className="text-[10px] opacity-70">{applications.filter(isStarred).length}</span>
           </button>
@@ -470,11 +470,11 @@ function ApplicationTable({
                   <button
                     onClick={() => onToggleStar(app)}
                     className={`rounded-lg p-1 transition-colors ${
-                      isStarred(app) ? "text-cyan-300" : "text-muted hover:text-cyan-300"
+                      isStarred(app) ? "text-yellow-300" : "text-muted hover:text-yellow-300"
                     }`}
                     title={isStarred(app) ? "Unstar job" : "Star job"}
                   >
-                    <Star size={15} className={isStarred(app) ? "fill-cyan-300" : ""} />
+                    <Star size={15} className={isStarred(app) ? "fill-yellow-300" : ""} />
                   </button>
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-purple-400/25 bg-purple-500/10 font-display text-[11px] font-semibold text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
                     {app.company.charAt(0).toUpperCase()}
@@ -564,11 +564,11 @@ function KanbanBoard({
                     <button
                       onClick={() => onToggleStar(app)}
                       className={`mt-0.5 rounded-md p-0.5 transition-colors ${
-                        isStarred(app) ? "text-cyan-300" : "text-muted hover:text-cyan-300"
+                        isStarred(app) ? "text-yellow-300" : "text-muted hover:text-yellow-300"
                       }`}
                       title={isStarred(app) ? "Unstar job" : "Star job"}
                     >
-                      <Star size={14} className={isStarred(app) ? "fill-cyan-300" : ""} />
+                      <Star size={14} className={isStarred(app) ? "fill-yellow-300" : ""} />
                     </button>
                     <h3 className="truncate font-display text-sm font-semibold text-foreground">{app.company}</h3>
                   </div>
